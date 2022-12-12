@@ -1,4 +1,4 @@
-module techtrain_api
+module github.com/Lutwidse/Techtrain-API
 
 go 1.17
 
