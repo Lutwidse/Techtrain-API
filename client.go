@@ -1,10 +1,12 @@
 package techtrain_api
 
 import (
-	"database/sql"
-	"fmt"
+	"log"
+	"net/http"
 
+	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/rs/cors"
 )
 
 type TechtrainClient struct {
@@ -17,11 +19,16 @@ func NewTechtrainClient() *TechtrainClient {
 	return &TechtrainClient{user: &User{}, gacha: &Gacha{}, character: &Character{}}
 }
 
-func (c *TechtrainClient) Test() {
-	db, err := sql.Open("mysql", "root:$A!c6i7xC!93%@FZ@tcp(127.0.0.1:3306)/test")
-	if err != nil {
-		panic(err.Error())
+func (client *TechtrainClient) Server() {
+	router := gin.Default()
+
+	v1 := router.Group("/api/v1/user")
+	{
+		v1.POST("/create", client.user.UserCreate)
+		v1.GET("/get", client.user.UserGet)
+		v1.PUT("/update", client.user.UserUpdate)
 	}
-	defer db.Close()
-	fmt.Println("Success!")
+	c := cors.AllowAll()
+	handler := c.Handler(router)
+	log.Fatal(http.ListenAndServe("127.0.0.1:5001", handler))
 }
