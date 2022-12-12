@@ -22,7 +22,7 @@ func NewTechtrainClient() *TechtrainClient {
 func (client *TechtrainClient) Server() {
 	router := gin.Default()
 
-	v1 := router.Group("/api/v1/user")
+	v1 := router.Group("user")
 	{
 		v1.POST("/create", client.user.UserCreate)
 		v1.GET("/get", client.user.UserGet)
@@ -30,5 +30,5 @@ func (client *TechtrainClient) Server() {
 	}
 	c := cors.AllowAll()
 	handler := c.Handler(router)
-	log.Fatal(http.ListenAndServe("127.0.0.1:5001", handler))
+	log.Fatal(http.ListenAndServe("127.0.0.1:8080", handler))
 }
