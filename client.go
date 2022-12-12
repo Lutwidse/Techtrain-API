@@ -1,4 +1,4 @@
-package api
+package techtrain_api
 
 import (
 	"database/sql"

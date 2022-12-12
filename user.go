@@ -1,4 +1,4 @@
-package api
+package techtrain_api
 
 type User struct {
 	Name    string
