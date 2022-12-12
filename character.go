@@ -4,7 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 type Character struct {
-	x_token string
+	xToken string
 }
 
 func (u *Character) CharacterList (c *gin.Context) {

@@ -6,7 +6,7 @@ import (
 
 type User struct {
 	Name    string
-	x_token string
+	xToken string `gorm:"column:x_token"`
 }
 
 func (u *User) UserCreate(c *gin.Context) {

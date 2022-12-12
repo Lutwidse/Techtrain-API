@@ -5,7 +5,7 @@ import (
 )
 
 type Gacha struct {
-	x_token string
+	xToken string
 }
 
 func (u *Gacha) GachaDraw (c *gin.Context) {
