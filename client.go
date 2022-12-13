@@ -34,6 +34,11 @@ func (client *TechtrainClient) Server() {
 		gachaApi.POST("/draw", client.gacha.GachaDraw)
 	}
 
+	characterApi := router.Group("character")
+	{
+		characterApi.GET("/list", client.character.CharacterList)
+	}
+
 	c := cors.AllowAll()
 	handler := c.Handler(router)
 	log.Fatal(http.ListenAndServe("127.0.0.1:8080", handler))
