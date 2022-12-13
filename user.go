@@ -30,9 +30,9 @@ func (u *User) UserCreate(c *gin.Context) {
 		log.Fatal(err)
 	}
 	token := uuid.New().String()
-	newUser := User{Name: user.Name, xToken: token}
+	userReq := User{Name: user.Name, xToken: token}
 
-	result := db.Exec("INSERT INTO `techtrain_db`.`users` (`name`, `x_token`) VALUES (?, ?)", newUser.Name, newUser.xToken)
+	result := db.Exec("INSERT INTO `techtrain_db`.`users` (`name`, `x_token`) VALUES (?, ?)", userReq.Name, userReq.xToken)
 	c.JSON(http.StatusOK, gin.H{"token": result.Value.(*User).xToken})
 }
 
@@ -47,8 +47,8 @@ func (u *User) UserGet(c *gin.Context) {
 	var user User
 
 	token := c.GetHeader("x-token")
-	dbUser := db.First(&user, "x_token = ?", token)
-	c.JSON(http.StatusOK, gin.H{"name": dbUser.Value.(*User).Name})
+	result := db.First(&user, "x_token = ?", token)
+	c.JSON(http.StatusOK, gin.H{"name": result.Value.(*User).Name})
 }
 
 func (u *User) UserUpdate(c *gin.Context) {
@@ -65,14 +65,14 @@ func (u *User) UserUpdate(c *gin.Context) {
 		log.Fatal(err)
 	}
 	token := c.GetHeader("x-token")
-	updateUser := User{Name: user.Name, xToken: token}
+	userReq := User{Name: user.Name, xToken: token}
 
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", "http://localhost:8080/user/get", nil)
 	if err != nil {
 		log.Fatal(err)
 	}
-	req.Header.Set("x-token", updateUser.xToken)
+	req.Header.Set("x-token", userReq.xToken)
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Fatal(err)
@@ -84,7 +84,7 @@ func (u *User) UserUpdate(c *gin.Context) {
 		panic(err)
 	}
 
-	newName := updateUser.Name
+	newName := userReq.Name
 	oldName := user.Name
 
 	db.Exec("UPDATE `techtrain_db`.`users` SET `name` = ? WHERE (`name` = ?) and (`x_token` = ?)", newName, oldName, token)
