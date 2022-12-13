@@ -33,6 +33,10 @@ func (u *User) UserCreate(c *gin.Context) {
 	userReq := User{Name: user.Name, xToken: token}
 
 	result := db.Exec("INSERT INTO `techtrain_db`.`users` (`name`, `x_token`) VALUES (?, ?)", userReq.Name, userReq.xToken)
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Already Registered"})
+		return
+	}
 	c.JSON(http.StatusOK, gin.H{"token": result.Value.(*User).xToken})
 }
 
