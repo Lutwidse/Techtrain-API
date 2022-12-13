@@ -52,7 +52,7 @@ func (u *Gacha) GachaDraw(c *gin.Context) {
 		characterId := result.Value.(*Gacha).CharacterId
 		name := result.Value.(*Gacha).Name
 
-		db.Exec("INSERT INTO `techtrain_db`.`inventories` (`character_id`, `x_token`) VALUES (?, ?)", characterId, token)
+		db.Exec("INSERT INTO `techtrain_db`.`characters` (`name`, `character_id`, `x_token`) VALUES (?, ?, ?)", name, characterId, token)
 		gachaRes = append(gachaRes, GachaResponse{CharacterId: characterId, Name: name})
 	}
 	c.JSON(http.StatusOK, gin.H{"results": gachaRes})
