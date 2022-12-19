@@ -26,6 +26,11 @@ func (s *CharacterService) List(c *gin.Context) {
 	var charaRes []CharacterResponse
 
 	token := c.GetHeader("x-token")
+	if token == "" {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Token Required"})
+		return
+	}
+	
 	result := s.db.Table("characters").Where("x_token = ?", token).Find(&s.character)
 	for i := 0; i < int(result.RowsAffected); i++ {
 		name := s.character[i].Name

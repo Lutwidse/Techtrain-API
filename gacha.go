@@ -39,6 +39,10 @@ func (s *GachaService) Draw(c *gin.Context) {
 		log.Fatal(err)
 	}
 	token := c.GetHeader("x-token")
+	if token == "" {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Token Required"})
+		return
+	}
 
 	gachaDraw := gachaReq
 	times := gachaDraw.Times
