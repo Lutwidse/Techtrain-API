@@ -39,6 +39,11 @@ func (s *UserService) Get(c *gin.Context) {
 	}
 
 	result := s.Db.First(&s.User, "x_token = ?", token)
+	if result.Error != nil {
+		c.JSON(http.StatusForbidden, gin.H{"error": "No User Found"})
+		return
+	}
+	
 	c.JSON(http.StatusOK, gin.H{"name": result.Value.(*data.User).Name})
 }
 
@@ -55,6 +60,10 @@ func (s *UserService) Update(c *gin.Context) {
 	userReq := data.User{Name: s.User.Name, XToken: token}
 
 	result := s.Db.First(&s.User, "x_token = ?", token)
+	if result.Error != nil {
+		c.JSON(http.StatusForbidden, gin.H{"error": "No User Found"})
+		return
+	}
 
 	newName := userReq.Name
 	oldName := result.Value.(*data.User).Name
