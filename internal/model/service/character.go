@@ -5,11 +5,12 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
+	"github.com/Lutwidse/Techtrain-API/internal/model/data"
 )
 
 type CharacterService struct {
-	db        *gorm.DB
-	character Character
+	Db        *gorm.DB
+	Character data.Character
 }
 
 type CharacterResponse struct {
@@ -26,10 +27,10 @@ func (s *CharacterService) List(c *gin.Context) {
 		return
 	}
 	
-	result := s.db.Table("characters").Where("x_token = ?", token).Find(&s.character)
+	result := s.Db.Table("characters").Where("x_token = ?", token).Find(&s.Character)
 	for i := 0; i < int(result.RowsAffected); i++ {
-		name := s.character[i].Name
-		characterId := s.character[i].CharacterId
+		name := s.Character[i].Name
+		characterId := s.Character[i].CharacterId
 
 		charaRes = append(charaRes, CharacterResponse{Name: name, CharacterId: characterId})
 	}

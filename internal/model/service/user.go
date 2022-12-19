@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/Lutwidse/Techtrain-API/internal/model/data"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/jinzhu/gorm"
@@ -12,18 +13,18 @@ import (
 )
 
 type UserService struct {
-	db   *gorm.DB
-	user User
+	Db   *gorm.DB
+	User data.User
 }
 
 func (s *UserService) Create(c *gin.Context) {
-	if err := c.BindJSON(&s.user); err != nil {
+	if err := c.BindJSON(&s.User); err != nil {
 		log.Fatal(err)
 	}
 	token := uuid.New().String()
-	userReq := User{Name: s.user.Name, xToken: token}
+	userReq := data.User{Name: s.User.Name, XToken: token}
 
-	result := s.db.Exec("INSERT INTO `techtrain_db`.`users` (`name`, `x_token`) VALUES (?, ?)", userReq.Name, userReq.xToken)
+	result := s.Db.Exec("INSERT INTO `techtrain_db`.`users` (`name`, `x_token`) VALUES (?, ?)", userReq.Name, userReq.XToken)
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Already Registered"})
 		return
@@ -38,12 +39,12 @@ func (s *UserService) Get(c *gin.Context) {
 		return
 	}
 
-	result := s.db.First(&s.user, "x_token = ?", token)
-	c.JSON(http.StatusOK, gin.H{"name": result.Value.(*User).Name})
+	result := s.Db.First(&s.User, "x_token = ?", token)
+	c.JSON(http.StatusOK, gin.H{"name": result.Value.(*data.User).Name})
 }
 
 func (s *UserService) Update(c *gin.Context) {
-	if err := c.BindJSON(&s.user); err != nil {
+	if err := c.BindJSON(&s.User); err != nil {
 		log.Fatal(err)
 	}
 	token := c.GetHeader("x-token")
@@ -52,28 +53,28 @@ func (s *UserService) Update(c *gin.Context) {
 		return
 	}
 
-	userReq := User{Name: s.user.Name, xToken: token}
+	userReq := data.User{Name: s.User.Name, XToken: token}
 
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", "http://localhost:8080/user/get", nil)
 	if err != nil {
 		log.Fatal(err)
 	}
-	req.Header.Set("x-token", userReq.xToken)
+	req.Header.Set("x-token", userReq.XToken)
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer resp.Body.Close()
 
-	err = json.NewDecoder(resp.Body).Decode(&s.user)
+	err = json.NewDecoder(resp.Body).Decode(&s.User)
 	if err != nil {
 		panic(err)
 	}
 
 	newName := userReq.Name
-	oldName := s.user.Name
+	oldName := s.User.Name
 
-	s.db.Exec("UPDATE `techtrain_db`.`users` SET `name` = ? WHERE (`name` = ?) and (`x_token` = ?)", newName, oldName, token)
+	s.Db.Exec("UPDATE `techtrain_db`.`users` SET `name` = ? WHERE (`name` = ?) and (`x_token` = ?)", newName, oldName, token)
 	c.JSON(http.StatusOK, nil)
 }

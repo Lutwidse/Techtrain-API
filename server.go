@@ -4,8 +4,8 @@ import (
 	"log"
 	"net/http"
 
-	"/internal/model/service/"
-
+	"github.com/Lutwidse/Techtrain-API/internal/model/data"
+	"github.com/Lutwidse/Techtrain-API/internal/model/service"
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
@@ -13,13 +13,13 @@ import (
 )
 
 type TechtrainServer struct {
-	user      *UserService
-	gacha     *GachaService
-	character *CharacterService
+	user      *service.UserService
+	gacha     *service.GachaService
+	character *service.CharacterService
 }
 
 func NewTechtrainServer(db *gorm.DB) *TechtrainServer {
-	return &TechtrainServer{user: &UserService{db, User{}}, gacha: &GachaService{db, Gacha{}}, character: &CharacterService{db, Character{}}}
+	return &TechtrainServer{user: &service.UserService{db, data.User{}}, gacha: &service.GachaService{db, data.Gacha{}}, character: &service.CharacterService{db, data.Character{}}}
 }
 
 func (server *TechtrainServer) Server() {

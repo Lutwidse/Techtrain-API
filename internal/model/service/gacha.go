@@ -7,11 +7,12 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
+	"github.com/Lutwidse/Techtrain-API/internal/model/data"
 )
 
 type GachaService struct {
-	db    *gorm.DB
-	gacha Gacha
+	Db    *gorm.DB
+	Gacha data.Gacha
 }
 
 type GachaRequest struct {
@@ -24,7 +25,7 @@ type GachaResponse struct {
 }
 
 func (s *GachaService) Draw(c *gin.Context) {
-	var gacha Gacha
+	var gacha data.Gacha
 	var gachaReq GachaRequest
 	var gachaRes []GachaResponse
 
@@ -42,11 +43,11 @@ func (s *GachaService) Draw(c *gin.Context) {
 
 	for i := 0; i < times; i++ {
 		rnd := rand.Intn(100)
-		result := s.db.Where("min_ratio <= ?", rnd).Where("max_ratio >= ?", rnd).First(&gacha)
-		characterId := result.Value.(*Gacha).CharacterId
-		name := result.Value.(*Gacha).Name
+		result := s.Db.Where("min_ratio <= ?", rnd).Where("max_ratio >= ?", rnd).First(&gacha)
+		characterId := result.Value.(*data.Gacha).CharacterId
+		name := result.Value.(*data.Gacha).Name
 
-		s.db.Exec("INSERT INTO `techtrain_db`.`characters` (`name`, `character_id`, `x_token`) VALUES (?, ?, ?)", name, characterId, token)
+		s.Db.Exec("INSERT INTO `techtrain_db`.`characters` (`name`, `character_id`, `x_token`) VALUES (?, ?, ?)", name, characterId, token)
 		gachaRes = append(gachaRes, GachaResponse{CharacterId: characterId, Name: name})
 	}
 	c.JSON(http.StatusOK, gin.H{"results": gachaRes})
