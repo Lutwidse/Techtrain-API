@@ -1,7 +1,6 @@
 package techtrain_api
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -13,29 +12,24 @@ type Character []struct {
 	CharacterId int    `gorm:"column:character_id"`
 	xToken      string `gorm:"column:x_token"`
 }
+type CharacterService struct {
+	db        *gorm.DB
+	character Character
+}
 
 type CharacterResponse struct {
 	Name        string `json:"name"`
 	CharacterId int    `json:"CharacterID"`
 }
 
-func (u *Character) CharacterList(c *gin.Context) {
-	db, err := gorm.Open("mysql", SqlArgs)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer db.Close()
-
-	db.LogMode(true)
-
-	var chara Character
+func (s *CharacterService) List(c *gin.Context) {
 	var charaRes []CharacterResponse
 
 	token := c.GetHeader("x-token")
-	result := db.Table("characters").Where("x_token = ?", token).Find(&chara)
+	result := s.db.Table("characters").Where("x_token = ?", token).Find(&s.character)
 	for i := 0; i < int(result.RowsAffected); i++ {
-		name := chara[i].Name
-		characterId := chara[i].CharacterId
+		name := s.character[i].Name
+		characterId := s.character[i].CharacterId
 
 		charaRes = append(charaRes, CharacterResponse{Name: name, CharacterId: characterId})
 	}

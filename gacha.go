@@ -16,6 +16,11 @@ type Gacha struct {
 	MaxRatio    int    `gorm:"column:max_ratio"`
 }
 
+type GachaService struct {
+	db    *gorm.DB
+	gacha Gacha
+}
+
 type GachaRequest struct {
 	Times int `json:"times"`
 }
@@ -25,15 +30,7 @@ type GachaResponse struct {
 	Name        string `json:"name"`
 }
 
-func (u *Gacha) GachaDraw(c *gin.Context) {
-	db, err := gorm.Open("mysql", SqlArgs)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer db.Close()
-
-	db.LogMode(true)
-
+func (s *GachaService) Draw(c *gin.Context) {
 	var gacha Gacha
 	var gachaReq GachaRequest
 	var gachaRes []GachaResponse
@@ -48,11 +45,11 @@ func (u *Gacha) GachaDraw(c *gin.Context) {
 
 	for i := 0; i < times; i++ {
 		rnd := rand.Intn(100)
-		result := db.Where("min_ratio <= ?", rnd).Where("max_ratio >= ?", rnd).First(&gacha)
+		result := s.db.Where("min_ratio <= ?", rnd).Where("max_ratio >= ?", rnd).First(&gacha)
 		characterId := result.Value.(*Gacha).CharacterId
 		name := result.Value.(*Gacha).Name
 
-		db.Exec("INSERT INTO `techtrain_db`.`characters` (`name`, `character_id`, `x_token`) VALUES (?, ?, ?)", name, characterId, token)
+		s.db.Exec("INSERT INTO `techtrain_db`.`characters` (`name`, `character_id`, `x_token`) VALUES (?, ?, ?)", name, characterId, token)
 		gachaRes = append(gachaRes, GachaResponse{CharacterId: characterId, Name: name})
 	}
 	c.JSON(http.StatusOK, gin.H{"results": gachaRes})
