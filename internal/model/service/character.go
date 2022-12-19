@@ -28,6 +28,11 @@ func (s *CharacterService) List(c *gin.Context) {
 	}
 	
 	result := s.Db.Table("characters").Where("x_token = ?", token).Find(&s.Character)
+	if result.RowsAffected == 0{
+		var dummy [0] int
+		c.JSON(http.StatusOK, gin.H{"characters": dummy})
+		return
+	}
 	for i := 0; i < int(result.RowsAffected); i++ {
 		name := s.Character[i].Name
 		characterId := s.Character[i].CharacterId
