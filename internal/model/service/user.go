@@ -1,4 +1,4 @@
-package techtrain_api
+package service
 
 import (
 	"encoding/json"
@@ -11,10 +11,6 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 )
 
-type User struct {
-	Name   string `gorm:"column:name"`
-	xToken string `gorm:"column:x_token"`
-}
 type UserService struct {
 	db   *gorm.DB
 	user User
@@ -41,7 +37,7 @@ func (s *UserService) Get(c *gin.Context) {
 		c.JSON(http.StatusForbidden, gin.H{"error": "Token Required"})
 		return
 	}
-	
+
 	result := s.db.First(&s.user, "x_token = ?", token)
 	c.JSON(http.StatusOK, gin.H{"name": result.Value.(*User).Name})
 }
