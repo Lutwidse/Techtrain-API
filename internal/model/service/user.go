@@ -1,7 +1,6 @@
 package service
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 
@@ -55,25 +54,10 @@ func (s *UserService) Update(c *gin.Context) {
 
 	userReq := data.User{Name: s.User.Name, XToken: token}
 
-	client := &http.Client{}
-	req, err := http.NewRequest("GET", "http://localhost:8080/user/get", nil)
-	if err != nil {
-		log.Fatal(err)
-	}
-	req.Header.Set("x-token", userReq.XToken)
-	resp, err := client.Do(req)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer resp.Body.Close()
-
-	err = json.NewDecoder(resp.Body).Decode(&s.User)
-	if err != nil {
-		panic(err)
-	}
+	result := s.Db.First(&s.User, "x_token = ?", token)
 
 	newName := userReq.Name
-	oldName := s.User.Name
+	oldName := result.Value.(*data.User).Name
 
 	s.Db.Exec("UPDATE `techtrain_db`.`users` SET `name` = ? WHERE (`name` = ?) and (`x_token` = ?)", newName, oldName, token)
 	c.JSON(http.StatusOK, nil)
