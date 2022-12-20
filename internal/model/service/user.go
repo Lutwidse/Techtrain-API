@@ -7,8 +7,8 @@ import (
 	"github.com/Lutwidse/Techtrain-API/internal/model/data"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
+	"gorm.io/gorm"
 )
 
 type UserService struct {
@@ -38,13 +38,14 @@ func (s *UserService) Get(c *gin.Context) {
 		return
 	}
 
-	result := s.Db.First(&s.User, "x_token = ?", token)
+	user := s.User
+	result := s.Db.First(&user, "x_token = ?", token)
 	if result.Error != nil {
 		c.JSON(http.StatusForbidden, gin.H{"error": "No User Found"})
 		return
 	}
-	
-	c.JSON(http.StatusOK, gin.H{"name": result.Value.(*data.User).Name})
+
+	c.JSON(http.StatusOK, gin.H{"name": user.Name})
 }
 
 func (s *UserService) Update(c *gin.Context) {
@@ -59,14 +60,15 @@ func (s *UserService) Update(c *gin.Context) {
 
 	userReq := data.User{Name: s.User.Name, XToken: token}
 
-	result := s.Db.First(&s.User, "x_token = ?", token)
+	user := s.User
+	result := s.Db.First(&user, "x_token = ?", token)
 	if result.Error != nil {
 		c.JSON(http.StatusForbidden, gin.H{"error": "No User Found"})
 		return
 	}
 
 	newName := userReq.Name
-	oldName := result.Value.(*data.User).Name
+	oldName := user.Name
 
 	s.Db.Exec("UPDATE `techtrain_db`.`users` SET `name` = ? WHERE (`name` = ?) and (`x_token` = ?)", newName, oldName, token)
 	c.JSON(http.StatusOK, nil)

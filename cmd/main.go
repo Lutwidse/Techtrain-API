@@ -5,8 +5,9 @@ import (
 	"log"
 
 	api "github.com/Lutwidse/Techtrain-API"
-	"github.com/jinzhu/gorm"
 	yaml "gopkg.in/yaml.v2"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
 
 type SQL struct {
@@ -27,9 +28,9 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	loginInfo := (sql.User + ":" + sql.Pw + "/" + sql.Db)
 
-	db, err := gorm.Open("mysql", loginInfo)
+	loginInfo := (sql.User + ":" + sql.Pw + "/" + sql.Db)
+	db, err := gorm.Open(mysql.Open(loginInfo), &gorm.Config{})
 	if err != nil {
 		log.Fatal(err)
 	}
