@@ -2,7 +2,11 @@ package data
 
 type Gacha struct {
 	CharacterId int    `gorm:"column:character_id"`
+	Weight      int    `gorm:"column:weight"`
 	Name        string `gorm:"column:name"`
-	MinRatio    int    `gorm:"column:min_ratio"`
-	MaxRatio    int    `gorm:"column:max_ratio"`
+}
+type GachaArray []struct {
+	CharacterId int    `gorm:"column:character_id"`
+	Weight      int    `gorm:"column:weight"`
+	Name        string `gorm:"column:name"`
 }

@@ -1,7 +1,11 @@
 package data
 
-type Character []struct {
-	Name        string `gorm:"column:name"`
+type Character struct {
 	CharacterId int    `gorm:"column:character_id"`
-	xToken      string `gorm:"column:x_token"`
+	XToken      string `gorm:"column:x_token"`
+}
+
+type CharacterArray []struct {
+	CharacterId int    `gorm:"column:character_id"`
+	XToken      string `gorm:"column:x_token"`
 }
