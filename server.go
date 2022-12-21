@@ -3,6 +3,7 @@ package techtrain_api
 import (
 	"log"
 	"net/http"
+	"sync"
 
 	"github.com/Lutwidse/Techtrain-API/internal/model/data"
 	"github.com/Lutwidse/Techtrain-API/internal/model/service"
@@ -13,13 +14,21 @@ import (
 )
 
 type TechtrainServer struct {
+	user        *service.UserService
+	gacha       *service.GachaService
+	character   *service.CharacterService
 	maintenance *service.MaintenanceService
 }
 
+func NewTechtrainServer(db *gorm.DB, wg *sync.WaitGroup) *TechtrainServer {
+	return &TechtrainServer{
+		user:        &service.UserService{db, wg, data.User{}},
+		gacha:       &service.GachaService{db, wg, data.Gacha{}, data.GachaArray{}},
+		character:   &service.CharacterService{db, wg, data.Character{}, data.CharacterArray{}},
 		maintenance: &service.MaintenanceService{db, nil, wg}}
 }
 
-func (server *TechtrainServer) Server() {
+func (server *TechtrainServer) Start() {
 	router := gin.Default()
 
 	userAPI := router.Group("user")
@@ -39,7 +48,19 @@ func (server *TechtrainServer) Server() {
 		characterAPI.GET("/list", server.character.List)
 	}
 
+	maintenanceAPI := router.Group("maintenance")
+	{
+		maintenanceAPI.POST("/operation", server.maintenance.Fetch)
+		maintenanceAPI.GET("/debugsleep", server.maintenance.DebugSleep)
+	}
+
 	c := cors.AllowAll()
 	handler := c.Handler(router)
-	log.Fatal(http.ListenAndServe("127.0.0.1:8080", handler))
+
+	server.maintenance.Srv = &http.Server{
+		Addr:    ":8080",
+		Handler: handler,
+	}
+
+	log.Println(server.maintenance.Srv.ListenAndServe())
 }

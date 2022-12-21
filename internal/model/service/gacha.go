@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"net/http"
 	"sort"
+	"sync"
 
 	"github.com/Lutwidse/Techtrain-API/internal/model/data"
 	"github.com/gin-gonic/gin"
@@ -17,6 +18,7 @@ const gachaResponseLimit = 100
 // GachaService is Object
 type GachaService struct {
 	Db         *gorm.DB
+	Wg         *sync.WaitGroup
 	Gacha      data.Gacha
 	GachaArray data.GachaArray
 }
@@ -58,8 +60,9 @@ func IndexChunks(length int, chunkSize int) <-chan IndexChunk {
 
 // Draw gacha and return results
 func (s *GachaService) Draw(c *gin.Context) {
+	s.Wg.Add(1)
 	var gachaRequest GachaRequest
-	gachaResponse := make([]GachaResponse,0)
+	gachaResponse := make([]GachaResponse, 0)
 
 	if err := c.BindJSON(&gachaRequest); err != nil {
 		c.JSON(http.StatusForbidden, gin.H{"error": "Draw Times Required"})
@@ -77,7 +80,7 @@ func (s *GachaService) Draw(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Draw Times Invalid"})
 		return
 	}
-	
+
 	result := s.Db.Table("gachas").Find(&s.GachaArray)
 	if result.RowsAffected == 0 {
 		var dummy [0]int
@@ -139,8 +142,8 @@ func (s *GachaService) Draw(c *gin.Context) {
 	if len(gachaResponse) > gachaResponseLimit {
 		dummy := gachaResponse[:gachaResponseLimit]
 		c.JSON(http.StatusOK, gin.H{"results": dummy})
-		return
+	} else {
+		c.JSON(http.StatusOK, gin.H{"results": gachaResponse})
 	}
-
-	c.JSON(http.StatusOK, gin.H{"results": gachaResponse})
+	s.Wg.Done()
 }
