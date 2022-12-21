@@ -80,7 +80,7 @@ func (s *UserService) Update(c *gin.Context) {
 		oldName := user.Name
 
 		s.Db.Exec("UPDATE `techtrain_db`.`users` SET `name` = ? WHERE (`name` = ?) and (`x_token` = ?)", newName, oldName, token)
-		c.JSON(http.StatusOK, nil)
+		c.JSON(http.StatusOK, gin.H{"result": "Success"})
 	}
 	s.Wg.Done()
 }
