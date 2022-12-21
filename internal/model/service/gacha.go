@@ -11,25 +11,33 @@ import (
 	"gorm.io/gorm"
 )
 
+const sqlInsertLimit = 10000
+const gachaResponseLimit = 100
+
+// GachaService is Object
 type GachaService struct {
 	Db         *gorm.DB
 	Gacha      data.Gacha
 	GachaArray data.GachaArray
 }
 
+// GachaRequest is request struct of Draw
 type GachaRequest struct {
 	Times int `json:"times"`
 }
 
+// GachaResponse is response struct of Draw
 type GachaResponse struct {
-	CharacterId int    `json:"CharacterID"`
+	CharacterID int    `json:"CharacterID"`
 	Name        string `json:"name"`
 }
 
+// IndexChunk is struct of IndexChunks
 type IndexChunk struct {
 	From, To int
 }
 
+// IndexChunks is function for separate array with chunk size
 func IndexChunks(length int, chunkSize int) <-chan IndexChunk {
 	ch := make(chan IndexChunk)
 
@@ -48,9 +56,10 @@ func IndexChunks(length int, chunkSize int) <-chan IndexChunk {
 	return ch
 }
 
+// Draw gacha and return results
 func (s *GachaService) Draw(c *gin.Context) {
 	var gachaRequest GachaRequest
-	var gachaResponse []GachaResponse
+	gachaResponse := make([]GachaResponse,0)
 
 	if err := c.BindJSON(&gachaRequest); err != nil {
 		c.JSON(http.StatusForbidden, gin.H{"error": "Draw Times Required"})
@@ -68,7 +77,7 @@ func (s *GachaService) Draw(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Draw Times Invalid"})
 		return
 	}
-
+	
 	result := s.Db.Table("gachas").Find(&s.GachaArray)
 	if result.RowsAffected == 0 {
 		var dummy [0]int
@@ -115,20 +124,20 @@ func (s *GachaService) Draw(c *gin.Context) {
 		characterID := gachaDraws[i] - 1
 		gachaName := gachaNames[characterID]
 
-		characterBatch = append(characterBatch, data.Character{CharacterId: characterID, XToken: token})
-		gachaResponse = append(gachaResponse, GachaResponse{CharacterId: characterID, Name: gachaName})
+		characterBatch = append(characterBatch, data.Character{CharacterID: characterID, XToken: token})
+		gachaResponse = append(gachaResponse, GachaResponse{CharacterID: characterID, Name: gachaName})
 	}
 
-	if len(characterBatch) >= 10000 {
-		for idx := range IndexChunks(len(characterBatch), 10000) {
+	if len(characterBatch) >= sqlInsertLimit {
+		for idx := range IndexChunks(len(characterBatch), sqlInsertLimit) {
 			s.Db.Table("characters").Create(characterBatch[idx.From:idx.To])
 		}
 	} else {
 		s.Db.Table("characters").Create(&characterBatch)
 	}
 
-	if len(gachaResponse) > 100 {
-		dummy := gachaResponse[:100]
+	if len(gachaResponse) > gachaResponseLimit {
+		dummy := gachaResponse[:gachaResponseLimit]
 		c.JSON(http.StatusOK, gin.H{"results": dummy})
 		return
 	}

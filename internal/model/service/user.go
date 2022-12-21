@@ -11,11 +11,13 @@ import (
 	"gorm.io/gorm"
 )
 
+// UserService is Object
 type UserService struct {
 	Db   *gorm.DB
 	User data.User
 }
 
+// Create user
 func (s *UserService) Create(c *gin.Context) {
 	if err := c.BindJSON(&s.User); err != nil {
 		log.Fatal(err)
@@ -31,6 +33,7 @@ func (s *UserService) Create(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"token": token})
 }
 
+// Get user info and return results
 func (s *UserService) Get(c *gin.Context) {
 	token := c.GetHeader("x-token")
 	if token == "" {
@@ -48,6 +51,7 @@ func (s *UserService) Get(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"name": user.Name})
 }
 
+// Update user name
 func (s *UserService) Update(c *gin.Context) {
 	if err := c.BindJSON(&s.User); err != nil {
 		log.Fatal(err)
