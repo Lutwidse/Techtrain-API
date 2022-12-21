@@ -13,13 +13,10 @@ import (
 )
 
 type TechtrainServer struct {
-	user      *service.UserService
-	gacha     *service.GachaService
-	character *service.CharacterService
+	maintenance *service.MaintenanceService
 }
 
-func NewTechtrainServer(db *gorm.DB) *TechtrainServer {
-	return &TechtrainServer{user: &service.UserService{db, data.User{}}, gacha: &service.GachaService{db, data.Gacha{}, data.GachaArray{}}, character: &service.CharacterService{db, data.Character{}, data.CharacterArray{}}}
+		maintenance: &service.MaintenanceService{db, nil, wg}}
 }
 
 func (server *TechtrainServer) Server() {
