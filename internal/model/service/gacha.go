@@ -5,7 +5,6 @@ import (
 	"math/rand"
 	"net/http"
 	"sort"
-	"sync"
 
 	"github.com/Lutwidse/Techtrain-API/internal/model/data"
 	"github.com/gin-gonic/gin"
@@ -18,7 +17,6 @@ const gachaResponseLimit = 100
 // GachaService is Object
 type GachaService struct {
 	Db         *gorm.DB
-	Wg         *sync.WaitGroup
 	Gacha      data.Gacha
 	GachaArray data.GachaArray
 }
@@ -60,7 +58,6 @@ func IndexChunks(length int, chunkSize int) <-chan IndexChunk {
 
 // Draw gacha and return results
 func (s *GachaService) Draw(c *gin.Context) {
-	s.Wg.Add(1)
 	var gachaRequest GachaRequest
 	gachaResponse := make([]GachaResponse, 0)
 
@@ -145,5 +142,4 @@ func (s *GachaService) Draw(c *gin.Context) {
 	} else {
 		c.JSON(http.StatusOK, gin.H{"results": gachaResponse})
 	}
-	s.Wg.Done()
 }

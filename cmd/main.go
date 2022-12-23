@@ -3,7 +3,6 @@ package main
 import (
 	"io/ioutil"
 	"log"
-	"sync"
 
 	api "github.com/Lutwidse/Techtrain-API"
 	yaml "gopkg.in/yaml.v2"
@@ -36,7 +35,6 @@ func main() {
 		log.Fatal(err)
 	}
 
-	var wg sync.WaitGroup
-	srv := api.NewTechtrainServer(db, &wg)
+	srv := api.NewTechtrainServer(db)
 	srv.Start()
 }

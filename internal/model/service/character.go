@@ -2,7 +2,6 @@ package service
 
 import (
 	"net/http"
-	"sync"
 
 	"github.com/Lutwidse/Techtrain-API/internal/model/data"
 	"github.com/gin-gonic/gin"
@@ -14,7 +13,6 @@ const characterResponseLimit = 100
 // CharacterService is Object
 type CharacterService struct {
 	Db             *gorm.DB
-	Wg             *sync.WaitGroup
 	Character      data.Character
 	CharacterArray data.CharacterArray
 }
@@ -27,7 +25,6 @@ type CharacterResponse struct {
 
 // List returns characters owned by the user
 func (s *CharacterService) List(c *gin.Context) {
-	s.Wg.Add(1)
 	characterResponse := make([]CharacterResponse, 0)
 
 	token := c.GetHeader("x-token")
@@ -62,5 +59,4 @@ func (s *CharacterService) List(c *gin.Context) {
 		characterResponse = append(characterResponse, CharacterResponse{CharacterID: characterID, Name: gachaNames[characterID]})
 	}
 	c.JSON(http.StatusOK, gin.H{"characters": characterResponse})
-	s.Wg.Done()
 }

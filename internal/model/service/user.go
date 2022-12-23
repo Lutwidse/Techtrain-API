@@ -3,7 +3,6 @@ package service
 import (
 	"log"
 	"net/http"
-	"sync"
 
 	"github.com/Lutwidse/Techtrain-API/internal/model/data"
 	"github.com/gin-gonic/gin"
@@ -15,13 +14,11 @@ import (
 // UserService is Object
 type UserService struct {
 	Db   *gorm.DB
-	Wg   *sync.WaitGroup
 	User data.User
 }
 
 // Create user
 func (s *UserService) Create(c *gin.Context) {
-	s.Wg.Add(1)
 	if err := c.BindJSON(&s.User); err != nil {
 		log.Fatal(err)
 	}
@@ -34,12 +31,10 @@ func (s *UserService) Create(c *gin.Context) {
 	} else {
 		c.JSON(http.StatusOK, gin.H{"token": token})
 	}
-	s.Wg.Done()
 }
 
 // Get user info and return results
 func (s *UserService) Get(c *gin.Context) {
-	s.Wg.Add(1)
 	token := c.GetHeader("x-token")
 	if token == "" {
 		c.JSON(http.StatusForbidden, gin.H{"error": "Token Required"})
@@ -53,12 +48,10 @@ func (s *UserService) Get(c *gin.Context) {
 	} else {
 		c.JSON(http.StatusOK, gin.H{"name": user.Name})
 	}
-	s.Wg.Done()
 }
 
 // Update user name
 func (s *UserService) Update(c *gin.Context) {
-	s.Wg.Add(1)
 	if err := c.BindJSON(&s.User); err != nil {
 		log.Fatal(err)
 	}
@@ -82,5 +75,4 @@ func (s *UserService) Update(c *gin.Context) {
 		s.Db.Exec("UPDATE `techtrain_db`.`users` SET `name` = ? WHERE (`name` = ?) and (`x_token` = ?)", newName, oldName, token)
 		c.JSON(http.StatusOK, gin.H{"result": "Success"})
 	}
-	s.Wg.Done()
 }

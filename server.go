@@ -1,9 +1,10 @@
 package techtrain_api
 
 import (
+	"context"
 	"log"
 	"net/http"
-	"sync"
+	"time"
 
 	"github.com/Lutwidse/Techtrain-API/internal/model/data"
 	"github.com/Lutwidse/Techtrain-API/internal/model/service"
@@ -20,12 +21,12 @@ type TechtrainServer struct {
 	maintenance *service.MaintenanceService
 }
 
-func NewTechtrainServer(db *gorm.DB, wg *sync.WaitGroup) *TechtrainServer {
+func NewTechtrainServer(db *gorm.DB) *TechtrainServer {
 	return &TechtrainServer{
-		user:        &service.UserService{db, wg, data.User{}},
-		gacha:       &service.GachaService{db, wg, data.Gacha{}, data.GachaArray{}},
-		character:   &service.CharacterService{db, wg, data.Character{}, data.CharacterArray{}},
-		maintenance: &service.MaintenanceService{db, nil, wg}}
+		user:        &service.UserService{db, data.User{}},
+		gacha:       &service.GachaService{db, data.Gacha{}, data.GachaArray{}},
+		character:   &service.CharacterService{db, data.Character{}, data.CharacterArray{}},
+		maintenance: &service.MaintenanceService{db, nil, nil}}
 }
 
 func (server *TechtrainServer) Start() {
@@ -62,5 +63,19 @@ func (server *TechtrainServer) Start() {
 		Handler: handler,
 	}
 
-	log.Println(server.maintenance.Srv.ListenAndServe())
+	operation := make(chan int, 1)
+	server.maintenance.Operation = operation
+
+	go func() {
+		log.Println(server.maintenance.Srv.ListenAndServe())
+	}()
+
+	<-server.maintenance.Operation
+	log.Println("Shutdown...")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Second)
+	defer cancel()
+	if err := server.maintenance.Srv.Shutdown(ctx); err != nil {
+		log.Fatal("Force Shutdown", err)
+	}
 }
