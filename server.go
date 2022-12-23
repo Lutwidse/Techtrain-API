@@ -1,10 +1,8 @@
 package techtrain_api
 
 import (
-	"context"
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/Lutwidse/Techtrain-API/internal/model/data"
 	"github.com/Lutwidse/Techtrain-API/internal/model/service"
@@ -51,7 +49,7 @@ func (server *TechtrainServer) Start() {
 
 	maintenanceAPI := router.Group("maintenance")
 	{
-		maintenanceAPI.POST("/operation", server.maintenance.Fetch)
+		maintenanceAPI.POST("/fetchoperation", server.maintenance.FetchOperation)
 		maintenanceAPI.GET("/debugsleep", server.maintenance.DebugSleep)
 	}
 
@@ -70,12 +68,5 @@ func (server *TechtrainServer) Start() {
 		log.Println(server.maintenance.Srv.ListenAndServe())
 	}()
 
-	<-server.maintenance.Operation
-	log.Println("Shutdown...")
-
-	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Second)
-	defer cancel()
-	if err := server.maintenance.Srv.Shutdown(ctx); err != nil {
-		log.Fatal("Force Shutdown", err)
-	}
+	server.maintenance.FetchPoll()
 }
